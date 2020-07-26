@@ -85,8 +85,3 @@ def write_to_template(event_html, job_html):
 
     with open("asce_oc_template.html", "w", encoding='utf-8') as file:
         file.write(str(template_soup))
-
-
-events_html = get_events()
-jobs_html = get_jobs()
-write_to_template(events_html, jobs_html)
