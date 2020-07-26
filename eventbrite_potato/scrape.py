@@ -46,18 +46,47 @@ def get_events():
     return html_string
 
 
-def write_to_template(event_html):
+def get_jobs():
+    response = requests.get("http://ymf-oc.org/careers")
+    soup = BeautifulSoup(response.text, 'html.parser')
+    jobs = soup.find('tbody')
+    all_job_info = []
+    html_string = ""
+
+    for job in jobs.find_all('tr'):
+        job_info = []
+        job_info.append(job.find('a')['href'])
+        for i, info in enumerate(job.find_all('td')):
+            if i != 2:
+                job_info.append(info.text)
+        all_job_info.append(job_info)
+
+    for job in all_job_info:
+        html_string += f"""<tr>
+          <td style="font-family:Arial;font-size:13px;font-weight:normal;color:#333333;margin-top:0;margin-bottom:14px;margin-right:0;margin-left:0;padding-top:5px;padding-bottom:0;padding-right:0;padding-left:0;"><a href="{job[0]}">{job[1]}</a></td>
+          <td style="font-family:Arial;font-size:13px;font-weight:normal;color:#333333;margin-top:0;margin-bottom:14px;margin-right:0;margin-left:0;padding-top:5px;padding-bottom:0;padding-right:0;padding-left:10px;">{job[2]}</td>
+          <td style="font-family:Arial;font-size:13px;font-weight:normal;color:#333333;margin-top:0;margin-bottom:14px;margin-right:0;margin-left:0;padding-top:5px;padding-bottom:0;padding-right:0;padding-left:10px;">{job[3]}</td>
+     </tr>"""
+
+    return html_string
+
+
+def write_to_template(event_html, job_html):
     with open("base.html", "r+") as template:
         template_contents = template.read()
         template_soup = BeautifulSoup(template_contents, 'html.parser')
         event_soup = BeautifulSoup(event_html, 'html.parser')  # HTML of events
+        job_soup = BeautifulSoup(job_html, 'html.parser')
         upcoming_events = template_soup.find('h2',
                                     style="margin-bottom:5px;font-family:Arial;font-size:16px;font-weight:bold;color:#fd8c25; margin-bottom: 20px; margin-top:0;margin-right:0;margin-left:0;padding-top:0;padding-bottom:0;padding-right:0;padding-left:0;")
+        job_opportunities = template_soup.find('tbody')
         upcoming_events.insert_after(event_soup)
+        job_opportunities.insert_after(job_soup)
 
     with open("asce_oc_template.html", "w", encoding='utf-8') as file:
         file.write(str(template_soup))
 
 
-html = get_events()
-write_to_template(html)
+events_html = get_events()
+jobs_html = get_jobs()
+write_to_template(events_html, jobs_html)
